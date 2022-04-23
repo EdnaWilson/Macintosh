@@ -1,0 +1,29 @@
+class Animal(val name: String)
+class Dog(override val name: String, val property: String) extends Animal(name)
+class Puppy(override val name: String, override val property: String, val age: Int) extends Dog(name, property)
+ 
+ 
+abstract class AnimalCage[+A <: Animal] {
+  def head: A
+  def tail: AnimalCage[A]
+  def add[A <: Animal](animal: A): AnimalCage[Animal]
+}
+ 
+class RealCage[+A <: Animal](h: A, t: AnimalCage[A]) extends AnimalCage[A] {
+  override def head: A = h
+  override def tail: AnimalCage[A] = t
+  override def add[A <: Animal](animal: A): AnimalCage[Animal] = new RealCage(animal, this)
+}
+ 
+object EmptyCage extends AnimalCage[Nothing] {
+  override def head: Nothing = throw new NoSuchElementException()
+  override def tail: AnimalCage[Nothing] = throw new NoSuchElementException()
+  override def add[A <: Animal](animal: A): AnimalCage[Animal] = new RealCage(animal, this)
+}
+ 
+  val dog1: Dog = new Dog("dog_1", "bark bark")
+  val dogCage: RealCage[Dog] = new RealCage(dog1, EmptyCage)
+  val puppy1: Puppy = new Puppy("puppy_1", "puppy bark", 5)
+ 
+ 
+  val x: AnimalCage[Dog] = dogCage.add(puppy1) //error! must be Animal, could not be Dog!
